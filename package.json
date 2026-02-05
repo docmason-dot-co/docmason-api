@@ -1,7 +1,7 @@
 {
   "name": "doc-mason-api",
   "version": "1.0.0",
-  "description": "Official API client for Doc Mason - PDF generation and template management service",
+  "description": "Official API client for https://docmason.co - PDF generation and template management service",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -20,7 +20,7 @@
     "client",
     "typescript"
   ],
-  "author": "Doc Mason",
+  "author": "Doc Mason ike@getdocmason.com (https://docmason.co)",
   "license": "MIT",
   "files": [
     "dist/**/*",
@@ -44,10 +44,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-org/doc-mason-api.git"
+    "url": "git+https://github.com/docmason-dot-co/docmason-api.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/doc-mason-api/issues"
+    "url": "https://github.com/docmason-dot-co/docmason-api/issues"
   },
-  "homepage": "https://github.com/your-org/doc-mason-api#readme"
+  "homepage": "https://github.com/docmason-dot-co/docmason-api#readme"
 }
