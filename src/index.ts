@@ -1,15 +1,20 @@
-// Main entry point
-export { DocMasonApi } from './DocMasonApi';
+// Main exports for the DocMasonApi package
+export { default as DocMasonApi, DocMasonApiConfig } from './DocMasonApi';
+export { default as EmailTemplateApi } from './EmailTemplateApi';
+export { default as SavedDocumentApi } from './SavedDocumentApi';
+export { default as TemplateApi } from './TemplateApi';
+export { default as TemplateDataApi } from './TemplateDataApi';
+export { default as UserApi } from './UserApi';
 
-// Re-export everything for convenience
-export * from './DocMasonApi';
-export * from './types';
-export * from './interfaces/TemplateInterfaces';
-export * from './interfaces/TemplateDataInterfaces';
-export * from './interfaces/TemplateRequestInterfaces';
-export * from './interfaces/UserApiInterfaces';
-export * from './interfaces/UserInterfaces';
+// Interface exports
+export * from './interfaces/EmailRequestDto';
+export * from './interfaces/EmailTemplateDataDto';
+export * from './interfaces/EmailTemplateDto';
+export * from './interfaces/SavedDocumentDto';
+export * from './interfaces/TemplateDataDto';
+export * from './interfaces/TemplateDto';
+export * from './interfaces/TemplateRequestDto';
+export * from './interfaces/UserDto';
 
 // Default export
-import { DocMasonApi } from './DocMasonApi';
-export default DocMasonApi;
+export { default as default } from './DocMasonApi';
