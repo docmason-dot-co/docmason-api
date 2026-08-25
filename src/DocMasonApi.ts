@@ -1,4 +1,7 @@
 import EmailTemplateApi from "./EmailTemplateApi";
+import EmailTemplateDataApi from "./EmailTemplateDataApi";
+import ParsedDocumentApi from "./ParsedDocumentApi";
+import ParsedDocumentRequestApi from "./ParsedDocumentRequestApi";
 import SavedDocumentApi from "./SavedDocumentApi";
 import TemplateApi from "./TemplateApi";
 import TemplateDataApi from "./TemplateDataApi";
@@ -34,6 +37,9 @@ export default class DocMasonApi {
   public templateApi = new TemplateApi(this);
   public templateDataApi = new TemplateDataApi(this);
   public emailTemplateApi = new EmailTemplateApi(this);
+  public emailTemplateDataApi = new EmailTemplateDataApi(this);
   public savedDocumentApi = new SavedDocumentApi(this);
+  public parsedDocumentApi = new ParsedDocumentApi(this);
+  public parsedDocumentRequestApi = new ParsedDocumentRequestApi(this);
 
 }

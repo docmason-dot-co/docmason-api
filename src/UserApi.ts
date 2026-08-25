@@ -19,7 +19,7 @@ export default class UserApi {
     return prom;
   }
 
-  public patchUser = (options: {User_Name: string}): Promise<FullUserDto> => {
+  public editUser = (options: {User_Name: string}): Promise<FullUserDto> => {
     const prom: Promise<FullUserDto> = new Promise((resolve, reject) => {
       apiRequest(`${this.dmapi.baseUrl}/user`, { method: 'PATCH', body: JSON.stringify(options), headers: {'Content-Type': 'application/json'} }, this.dmapi.apiKey).then(res => {
         if (res.ok) {

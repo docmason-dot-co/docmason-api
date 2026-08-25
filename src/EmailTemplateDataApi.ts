@@ -2,6 +2,13 @@ import DocMasonApi from "./DocMasonApi";
 import apiRequest from "./apiRequest";
 import EmailTemplateDataDto from "./interfaces/EmailTemplateDataDto";
 
+export interface CreateEmailTemplateDataRequestOptionsInterface {
+  EmailTemplateData_Name: string;
+  EmailTemplateData_Data: string;
+  EmailTemplateData_Interface: string;
+  EmailTemplate_guid: string;
+}
+
 export interface GetEmailTemplateDataRequestOptionsInterface {
   EmailTemplateData_guid: string;
 }
@@ -26,6 +33,26 @@ export interface ListEmailTemplateDataRequestOptionsInterface {
 
 export default class EmailTemplateDataApi {
   constructor(private dmapi: DocMasonApi) {}
+
+  public createEmailTemplateDataRequest = (options: CreateEmailTemplateDataRequestOptionsInterface): Promise<EmailTemplateDataDto> => {
+    const prom: Promise<EmailTemplateDataDto> = new Promise((resolve, reject) => {
+      apiRequest(`${this.dmapi.baseUrl}/email-template-data`, { 
+        method: 'POST',
+        body: JSON.stringify(options),
+        headers: {
+          'Content-Type': 'application/json'
+        } 
+      }, 
+      this.dmapi.apiKey).then(res => {
+        if (res.ok) {
+          res.json().then(json => resolve(json as EmailTemplateDataDto));
+        } else {
+          reject(res);
+        }
+      });
+    });
+    return prom;
+  }
 
   public getEmailTemplateDataRequest = (options: GetEmailTemplateDataRequestOptionsInterface): Promise<EmailTemplateDataDto> => {
     const prom: Promise<EmailTemplateDataDto> = new Promise((resolve, reject) => {

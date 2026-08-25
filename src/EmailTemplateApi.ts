@@ -86,8 +86,8 @@ export default class EmailTemplateApi {
     return prom;
   }
 
-  public listEmailTemplatesRequest = (options: ListEmailTemplatesRequestOptionsInterface): Promise<EmailTemplateWithContentDto> => {
-    const prom: Promise<EmailTemplateWithContentDto> = new Promise((resolve, reject) => {
+  public listEmailTemplatesRequest = (options: ListEmailTemplatesRequestOptionsInterface): Promise<EmailTemplateDto[]> => {
+    const prom: Promise<EmailTemplateDto[]> = new Promise((resolve, reject) => {
       let queryParams = [];
       if (options.EmailTemplate_Name) {
         queryParams.push(`EmailTemplate_Name=${options.EmailTemplate_Name}`);
@@ -108,7 +108,7 @@ export default class EmailTemplateApi {
       }, 
       this.dmapi.apiKey).then(res => {
         if (res.ok) {
-          res.json().then(json => resolve(json as EmailTemplateWithContentDto));
+          res.json().then(json => resolve(json as EmailTemplateDto[]));
         } else {
           reject(res);
         }

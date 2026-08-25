@@ -534,6 +534,67 @@ const htmlPreview = await dmapi.emailTemplateApi.getEmailTemplatePreviewRequest(
 });
 ```
 
+### Email Template Data
+
+#### Create Email Template Data
+```typescript
+const emailTemplateData = await dmapi.emailTemplateDataApi.createEmailTemplateDataRequest({
+  EmailTemplateData_Name: 'Sample Email Data',
+  EmailTemplate_guid: 'email-template-guid-here',
+  EmailTemplateData_Interface: JSON.stringify({ 
+    subject: 'string', 
+    recipientName: 'string',
+    message: 'string'
+  }),
+  EmailTemplateData_Data: JSON.stringify({
+    subject: 'Welcome to our service!',
+    recipientName: 'John Doe',
+    message: 'Thank you for joining us. We are excited to have you!'
+  })
+});
+```
+
+#### Get Email Template Data
+```typescript
+const data = await dmapi.emailTemplateDataApi.getEmailTemplateDataRequest({
+  EmailTemplate_guid: 'email-template-guid-here'
+});
+```
+
+#### List Email Template Data
+```typescript
+const dataList = await dmapi.emailTemplateDataApi.listEmailTemplateDataRequest({
+  EmailTemplate_guid: 'email-template-guid-here',
+  from: 0,
+  to: 10
+});
+```
+
+#### Update Email Template Data
+```typescript
+const updatedData = await dmapi.emailTemplateDataApi.editEmailTemplateDataRequest({
+  EmailTemplateData_guid: 'email-template-data-guid-here',
+  EmailTemplateData_Name: 'Updated Email Data',
+  EmailTemplateData_Interface: JSON.stringify({ 
+    subject: 'string', 
+    recipientName: 'string',
+    message: 'string' 
+  }),
+  EmailTemplateData_Data: JSON.stringify({
+    subject: 'Updated welcome message',
+    recipientName: 'Jane Smith',
+    message: 'We have updated our welcome process!'
+  })
+});
+```
+
+#### Delete Email Template Data
+```typescript
+await dmapi.emailTemplateDataApi.deleteEmailTemplateDataRequest({
+  EmailTemplateData_guid: 'email-template-data-guid-here'
+});
+```
+
 ### Template Data
 
 #### Create Template Data
@@ -571,7 +632,7 @@ const userProfile = await dmapi.userApi.profileRequest();
 
 #### Update User
 ```typescript
-const updatedUser = await dmapi.userApi.patchUser({
+const updatedUser = await dmapi.userApi.editUser({
   User_Name: 'New Username'
 });
 ```

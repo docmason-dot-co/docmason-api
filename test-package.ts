@@ -18,6 +18,21 @@ const loadFromEnv = (): void => {
 
 loadFromEnv();
 
+// Minimal valid single-page PDF used to test ParsedDocument file upload/run endpoints
+const MINIMAL_PDF_CONTENT = `%PDF-1.1
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj
+4 0 obj << /Length 68 >> stream
+BT /F1 12 Tf 20 100 Td (Jane Smith - Software Engineer - TypeScript) Tj ET
+endstream
+endobj
+5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+trailer << /Root 1 0 R >>
+`;
+const createMinimalPdfFile = (name: string): File => new File([MINIMAL_PDF_CONTENT], name, { type: 'application/pdf' });
+
+
 // Test results tracker
 interface TestResult {
   name: string;
@@ -419,6 +434,487 @@ const testCanPreviewEmailTemplate = async (dmapi: DocMasonApi, templateGuid: str
   }
 };
 
+// Email Template Data API Tests
+const testCanCreateEmailTemplateData = async (dmapi: DocMasonApi, emailTemplateGuid: string): Promise<any> => {
+  console.log('-------------------------');
+  console.log('TEST: Can create email template data');
+  try {
+    // Debug: Let's see what JSON.stringify produces
+    const testData = JSON.stringify('Welcome to Our Service');
+    console.log('JSON stringified data:', testData);
+    
+    const emailTemplateData = await dmapi.emailTemplateDataApi.createEmailTemplateDataRequest({
+      EmailTemplateData_Name: 'subject',
+      EmailTemplate_guid: emailTemplateGuid,
+      EmailTemplateData_Interface: 'string',
+      EmailTemplateData_Data: testData
+    });
+    await dmapi.emailTemplateDataApi.createEmailTemplateDataRequest({
+      EmailTemplate_guid: emailTemplateGuid,
+      EmailTemplateData_Name: 'name',
+      EmailTemplateData_Interface: 'string',
+      EmailTemplateData_Data: '\\"Jane Smith\\"'
+    });
+    await dmapi.emailTemplateDataApi.createEmailTemplateDataRequest({
+      EmailTemplate_guid: emailTemplateGuid,
+      EmailTemplateData_Name: 'message',
+      EmailTemplateData_Interface: 'string',
+      EmailTemplateData_Data: '\\"Thank you for joining us! We have updated your information.\\"'
+    });
+    await dmapi.emailTemplateDataApi.createEmailTemplateDataRequest({
+      EmailTemplate_guid: emailTemplateGuid,
+      EmailTemplateData_Name: 'companyName',
+      EmailTemplateData_Interface: 'string',
+      EmailTemplateData_Data: '\\"Updated Company Name\\"'
+    });
+    console.log('Created Email Template Data: ');
+    console.log(emailTemplateData);
+    console.log('-------------------------');
+    logTest('Create Email Template Data', 'pass', `Email template data created with GUID: ${emailTemplateData.EmailTemplateData_guid}`);
+    return emailTemplateData;
+  } catch (error: any) {
+    console.error('Error creating email template data:', error);
+    
+    // Handle Response objects with better error details
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Create Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Create Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Create Email Template Data', 'fail', '', error as Error);
+    }
+    
+    console.log('-------------------------');
+    return null;
+  }
+};
+
+const testCanGetEmailTemplateData = async (dmapi: DocMasonApi, emailTemplateDataGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can get email template data');
+  try {
+    const emailTemplateData = await dmapi.emailTemplateDataApi.getEmailTemplateDataRequest({ 
+      EmailTemplateData_guid: emailTemplateDataGuid 
+    });
+    console.log('Retrieved Email Template Data: ');
+    console.log(emailTemplateData);
+    console.log('-------------------------');
+    logTest('Get Email Template Data', 'pass', `Retrieved email template data: ${emailTemplateData.EmailTemplateData_Name}`);
+  } catch (error: any) {
+    console.error('Error getting email template data:', error);
+    
+    // Handle Response objects with better error details
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Get Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Get Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Get Email Template Data', 'fail', '', error as Error);
+    }
+    
+    console.log('-------------------------');
+  }
+};
+
+const testCanListEmailTemplateData = async (dmapi: DocMasonApi, emailTemplateGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can list email template data');
+  try {
+    const emailTemplateDataList = await dmapi.emailTemplateDataApi.listEmailTemplateDataRequest({ 
+      EmailTemplate_guid: emailTemplateGuid,
+      from: 0, 
+      to: 10 
+    });
+    console.log('Email Template Data List: ');
+    console.log(emailTemplateDataList);
+    console.log('-------------------------');
+    logTest('List Email Template Data', 'pass', `Retrieved ${Array.isArray(emailTemplateDataList) ? emailTemplateDataList.length : 'N/A'} email template data items`);
+  } catch (error: any) {
+    console.error('Error listing email template data:', error);
+    
+    // Handle Response objects with better error details
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('List Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('List Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('List Email Template Data', 'fail', '', error as Error);
+    }
+    
+    console.log('-------------------------');
+  }
+};
+
+const testCanEditEmailTemplateData = async (dmapi: DocMasonApi, emailTemplateDataGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can edit email template data');
+  try {
+    const updatedEmailTemplateData = await dmapi.emailTemplateDataApi.editEmailTemplateDataRequest({
+      EmailTemplateData_guid: emailTemplateDataGuid,
+      EmailTemplateData_Name: 'subject',
+      EmailTemplateData_Interface: 'string',
+      EmailTemplateData_Data: JSON.stringify('Updated: Welcome to Our Service')
+    });
+    console.log('Updated Email Template Data: ');
+    console.log(updatedEmailTemplateData);
+    console.log('-------------------------');
+    logTest('Edit Email Template Data', 'pass', 'Email template data successfully updated');
+  } catch (error: any) {
+    console.error('Error editing email template data:', error);
+    
+    // Handle Response objects with better error details
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Edit Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Edit Email Template Data', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Edit Email Template Data', 'fail', '', error as Error);
+    }
+    
+    console.log('-------------------------');
+  }
+};
+
+// Parsed Document API Tests
+const testCanCreateParsedDocument = async (dmapi: DocMasonApi): Promise<any> => {
+  console.log('-------------------------');
+  console.log('TEST: Can create parsed document');
+  try {
+    const parsedDocument = await dmapi.parsedDocumentApi.createParsedDocumentRequest({
+      ParsedDocument_Name: 'Test Resume Parser - ' + new Date().toISOString().slice(0, 19),
+      ParsedDocument_Description: 'Extract candidate profile information from resumes',
+      ParsedDocument_Interface: `{
+        candidateName: string;
+        email?: string;
+        phone?: string;
+        skills: string[];
+      }`
+    });
+    console.log('Created Parsed Document: ');
+    console.log(parsedDocument);
+    console.log('-------------------------');
+    logTest('Create Parsed Document', 'pass', `Parsed document created with GUID: ${parsedDocument.ParsedDocument_guid}`);
+    return parsedDocument;
+  } catch (error: any) {
+    console.error('Error creating parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Create Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Create Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Create Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+    return null;
+  }
+};
+
+const testCanGetParsedDocument = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can get parsed document');
+  try {
+    const parsedDocument = await dmapi.parsedDocumentApi.getParsedDocumentRequest({ ParsedDocument_guid: parsedDocumentGuid });
+    console.log('Retrieved Parsed Document: ');
+    console.log(parsedDocument);
+    console.log('-------------------------');
+    logTest('Get Parsed Document', 'pass', `Retrieved parsed document: ${parsedDocument.ParsedDocument_Name}`);
+  } catch (error: any) {
+    console.error('Error getting parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Get Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Get Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Get Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanListParsedDocuments = async (dmapi: DocMasonApi): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can list parsed documents');
+  try {
+    const parsedDocuments = await dmapi.parsedDocumentApi.listParsedDocumentsRequest({ from: 0, to: 10 });
+    console.log('Parsed Documents: ');
+    console.log(parsedDocuments);
+    console.log('-------------------------');
+    logTest('List Parsed Documents', 'pass', `Retrieved ${Array.isArray(parsedDocuments) ? parsedDocuments.length : 'N/A'} parsed documents`);
+  } catch (error: any) {
+    console.error('Error listing parsed documents:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('List Parsed Documents', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('List Parsed Documents', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('List Parsed Documents', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanUpdateParsedDocument = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can update parsed document');
+  try {
+    const updatedParsedDocument = await dmapi.parsedDocumentApi.updateParsedDocumentRequest({
+      ParsedDocument_guid: parsedDocumentGuid,
+      ParsedDocument_Interface: `{
+        candidateName: string;
+        email?: string;
+        phone?: string;
+        skills: string[];
+        experience: {
+          company: string;
+          title: string;
+          startDate?: string;
+          endDate?: string;
+        }[];
+      }`
+    });
+    console.log('Updated Parsed Document: ');
+    console.log(updatedParsedDocument);
+    console.log('-------------------------');
+    logTest('Update Parsed Document', 'pass', 'Parsed document successfully updated');
+  } catch (error: any) {
+    console.error('Error updating parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Update Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Update Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Update Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanUploadParsedDocumentExample = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can upload parsed document example');
+  try {
+    const exampleFile = createMinimalPdfFile('example-resume.pdf');
+    const updatedParsedDocument = await dmapi.parsedDocumentApi.uploadParsedDocumentExampleRequest({
+      ParsedDocument_guid: parsedDocumentGuid,
+      file: exampleFile
+    });
+    console.log('Parsed Document with Example: ');
+    console.log(updatedParsedDocument);
+    console.log('-------------------------');
+    logTest('Upload Parsed Document Example', 'pass', 'Example file successfully uploaded');
+  } catch (error: any) {
+    console.error('Error uploading parsed document example:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Upload Parsed Document Example', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Upload Parsed Document Example', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Upload Parsed Document Example', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanRunParsedDocument = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<{ requestGuid: string | null; }> => {
+  console.log('-------------------------');
+  console.log('TEST: Can run parsed document');
+  try {
+    const runFile = createMinimalPdfFile('resume.pdf');
+    const runResult = await dmapi.parsedDocumentApi.runParsedDocumentRequest({
+      ParsedDocument_guid: parsedDocumentGuid,
+      file: runFile
+    });
+    console.log('Run Parsed Document Result: ');
+    console.log(runResult);
+    console.log('-------------------------');
+    logTest('Run Parsed Document', 'pass', `Run returned status: ${runResult.status}`);
+    return { requestGuid: runResult.parsedDocumentRequestGuid || null };
+  } catch (error: any) {
+    console.error('Error running parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Run Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Run Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Run Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+    return { requestGuid: null };
+  }
+};
+
+const testCanPollParsedDocument = async (dmapi: DocMasonApi, parsedDocumentGuid: string, parsedDocumentRequestGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can poll parsed document request');
+  try {
+    const pollResult = await dmapi.parsedDocumentApi.pollParsedDocumentRequest({
+      ParsedDocument_guid: parsedDocumentGuid,
+      ParsedDocumentRequest_guid: parsedDocumentRequestGuid
+    });
+    console.log('Poll Result: ');
+    console.log(pollResult);
+    console.log('-------------------------');
+    logTest('Poll Parsed Document', 'pass', `Poll returned status: ${pollResult.status}`);
+  } catch (error: any) {
+    console.error('Error polling parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Poll Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Poll Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Poll Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanDeleteParsedDocument = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can delete parsed document');
+  try {
+    await dmapi.parsedDocumentApi.deleteParsedDocumentRequest({ ParsedDocument_guid: parsedDocumentGuid });
+    console.log('-------------------------');
+    logTest('Delete Parsed Document', 'pass', 'Parsed document successfully deleted');
+  } catch (error: any) {
+    console.error('Error deleting parsed document:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Delete Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Delete Parsed Document', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Delete Parsed Document', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+// Parsed Document Request API Tests
+const testCanListParsedDocumentRequests = async (dmapi: DocMasonApi, parsedDocumentGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can list parsed document requests');
+  try {
+    const requestList = await dmapi.parsedDocumentRequestApi.listParsedDocumentRequestsRequest({
+      ParsedDocument_guid: parsedDocumentGuid,
+      from: 0,
+      to: 10
+    });
+    console.log('Parsed Document Requests: ');
+    console.log(requestList);
+    console.log('-------------------------');
+    logTest('List Parsed Document Requests', 'pass', `Retrieved ${requestList.parsedDocumentRequests?.length ?? 'N/A'} parsed document requests`);
+  } catch (error: any) {
+    console.error('Error listing parsed document requests:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('List Parsed Document Requests', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('List Parsed Document Requests', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('List Parsed Document Requests', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
+const testCanGetParsedDocumentRequest = async (dmapi: DocMasonApi, parsedDocumentRequestGuid: string): Promise<void> => {
+  console.log('-------------------------');
+  console.log('TEST: Can get parsed document request');
+  try {
+    const parsedDocumentRequest = await dmapi.parsedDocumentRequestApi.getParsedDocumentRequestRequest({
+      ParsedDocumentRequest_guid: parsedDocumentRequestGuid
+    });
+    console.log('Parsed Document Request: ');
+    console.log(parsedDocumentRequest);
+    console.log('-------------------------');
+    logTest('Get Parsed Document Request', 'pass', `Retrieved parsed document request: ${parsedDocumentRequest.ParsedDocumentRequest_Name}`);
+  } catch (error: any) {
+    console.error('Error getting parsed document request:', error);
+
+    if (error && error.status) {
+      try {
+        const errorBody = await error.text();
+        console.log('Error response body:', errorBody);
+        logTest('Get Parsed Document Request', 'fail', `HTTP ${error.status}: ${error.statusText}`, new Error(`HTTP ${error.status}: ${errorBody}`));
+      } catch {
+        logTest('Get Parsed Document Request', 'fail', `HTTP ${error.status}: ${error.statusText}`, error as Error);
+      }
+    } else {
+      logTest('Get Parsed Document Request', 'fail', '', error as Error);
+    }
+
+    console.log('-------------------------');
+  }
+};
+
 // User API Tests
 const testCanGetUserProfile = async (dmapi: DocMasonApi): Promise<void> => {
   console.log('-------------------------');
@@ -483,6 +979,8 @@ const testPackage = async (): Promise<void> => {
   let createdTemplate: any = null;
   let createdEmailTemplate: any = null;
   let createdTemplateData: any = null;
+  let createdEmailTemplateData: any = null;
+  let createdParsedDocument: any = null;
 
   // First test authentication with user profile
   console.log('\n🔐 Authentication Test');
@@ -540,10 +1038,29 @@ const testPackage = async (): Promise<void> => {
     await testCanGetEmailTemplate(dmapi, createdEmailTemplate.EmailTemplate_guid);
     await testCanEditEmailTemplate(dmapi, createdEmailTemplate.EmailTemplate_guid);
     await testCanPreviewEmailTemplate(dmapi, createdEmailTemplate.EmailTemplate_guid);
+    
+    // Email Template Data Tests
+    console.log('\n📨 Email Template Data API Tests');
+    console.log('-'.repeat(30));
+    
+    createdEmailTemplateData = await testCanCreateEmailTemplateData(dmapi, createdEmailTemplate.EmailTemplate_guid);
+    await testCanListEmailTemplateData(dmapi, createdEmailTemplate.EmailTemplate_guid);
+    
+    if (createdEmailTemplateData) {
+      await testCanGetEmailTemplateData(dmapi, createdEmailTemplateData.EmailTemplateData_guid);
+      await testCanEditEmailTemplateData(dmapi, createdEmailTemplateData.EmailTemplateData_guid);
+    } else {
+      logTest('Get Email Template Data', 'skip', 'No email template data to test with');
+      logTest('Edit Email Template Data', 'skip', 'No email template data to test with');
+    }
   } else {
     logTest('Get Email Template', 'skip', 'No email template to test with');
     logTest('Edit Email Template', 'skip', 'No email template to test with');
     logTest('Preview Email Template', 'skip', 'No email template to test with');
+    logTest('Create Email Template Data', 'skip', 'No email template to test with');
+    logTest('List Email Template Data', 'skip', 'No email template to test with');
+    logTest('Get Email Template Data', 'skip', 'No email template to test with');
+    logTest('Edit Email Template Data', 'skip', 'No email template to test with');
   }
 
   // User API Tests (already tested above for authentication)
@@ -551,10 +1068,50 @@ const testPackage = async (): Promise<void> => {
   console.log('-'.repeat(30));
   console.log('✅ User profile test already completed during authentication check');
 
+  // Parsed Document API Tests
+  console.log('\n🧾 Parsed Document API Tests');
+  console.log('-'.repeat(30));
+
+  createdParsedDocument = await testCanCreateParsedDocument(dmapi);
+  await testCanListParsedDocuments(dmapi);
+
+  if (createdParsedDocument) {
+    await testCanGetParsedDocument(dmapi, createdParsedDocument.ParsedDocument_guid);
+    await testCanUpdateParsedDocument(dmapi, createdParsedDocument.ParsedDocument_guid);
+    await testCanUploadParsedDocumentExample(dmapi, createdParsedDocument.ParsedDocument_guid);
+
+    const { requestGuid } = await testCanRunParsedDocument(dmapi, createdParsedDocument.ParsedDocument_guid);
+
+    // Parsed Document Request API Tests
+    console.log('\n🧾 Parsed Document Request API Tests');
+    console.log('-'.repeat(30));
+
+    await testCanListParsedDocumentRequests(dmapi, createdParsedDocument.ParsedDocument_guid);
+
+    if (requestGuid) {
+      await testCanPollParsedDocument(dmapi, createdParsedDocument.ParsedDocument_guid, requestGuid);
+      await testCanGetParsedDocumentRequest(dmapi, requestGuid);
+    } else {
+      logTest('Poll Parsed Document', 'skip', 'No parsed document request to poll');
+      logTest('Get Parsed Document Request', 'skip', 'No parsed document request to test with');
+    }
+
+    await testCanDeleteParsedDocument(dmapi, createdParsedDocument.ParsedDocument_guid);
+  } else {
+    logTest('Get Parsed Document', 'skip', 'No parsed document to test with');
+    logTest('Update Parsed Document', 'skip', 'No parsed document to test with');
+    logTest('Upload Parsed Document Example', 'skip', 'No parsed document to test with');
+    logTest('Run Parsed Document', 'skip', 'No parsed document to test with');
+    logTest('List Parsed Document Requests', 'skip', 'No parsed document to test with');
+    logTest('Poll Parsed Document', 'skip', 'No parsed document to test with');
+    logTest('Get Parsed Document Request', 'skip', 'No parsed document to test with');
+    logTest('Delete Parsed Document', 'skip', 'No parsed document to test with');
+  }
+
   // Saved Document API Tests
   console.log('\n💾 Saved Document API Tests');
   console.log('-'.repeat(30));
-  
+
   await testCanListSavedDocuments(dmapi);
 
   // Final Summary
